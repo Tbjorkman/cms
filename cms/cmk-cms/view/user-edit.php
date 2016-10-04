@@ -25,14 +25,19 @@ if ( !isset($view_files) )
 	</div>
 
 	<div class="card-body">
-		<form method="post" data-page="user-edit">
+		<form method="post" data-page="user-edit" data-params="<?php echo $_GET['id'] ?>">
 			<?php
 			if(!isset($_GET['id']) || empty($_GET['id']))
 			{
-				alert('warning',  NO_USER_SELECTED . '<a href="index.php?page=users" data-page="users">'. RETURN_TO_OVERVIEW .'</a>');
+				// Get the seleceted users id from the URL param
+				$id = intval($_GET['id']);
 			}
-			// Get the seleceted users id from the URL param
-			$id = intval($_GET['id']);
+			else
+			{
+				// Get the id from the session
+				$id = intval($_SESSION['user']['id']);
+			}
+
 			// Get the users from the Database
 			$query = "
 				SELECT 

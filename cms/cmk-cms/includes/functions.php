@@ -99,7 +99,7 @@ function prettyprint($data)
  * @param int $page_around: the number of page links it shows to either side of the current page/link
  * @param bool $show_disabled_arrows: show disabled next or previous links, or hide them
  */
-function pagination($page_no, $items_total, $page_length, $page_around = 3, $show_disabled_arrows = false)
+function pagination($page, $page_no, $items_total, $page_length, $page_around = 2, $show_disabled_arrows = true)
 {
 //$items_total
 	// Only shows pagination if total items is greater than page length
@@ -145,7 +145,7 @@ function pagination($page_no, $items_total, $page_length, $page_around = 3, $sho
 
 		if($page_no > 1)
 		{
-			echo '<li><a href="index.php?page=users&page-no=' . ($page_no - 1) . '" data-page="users" data-params="page-no=' . ($page_no - 1) . '">' . $icons['previous'] . '</a></li>';
+			echo '<li><a href="index.php?page=' . $page . '&page-no=' . ($page_no - 1) . '" data-page="' . $page . '" data-params="page-no=' . ($page_no - 1) . '">' . $icons['previous'] . '</a></li>';
 		}
 
 		// If current page is not greater than 1, show disabled previous link
@@ -155,7 +155,7 @@ function pagination($page_no, $items_total, $page_length, $page_around = 3, $sho
 		}
 
 		// Show first page
-		echo '<li' . ($page_no == 1 ? ' class="active"' : '') . '><a href="index.php?page=users&page-no=1" data-page="users" data-params="page-no=1">1</a></li>';
+		echo '<li' . ($page_no == 1 ? ' class="active"' : '') . '><a href="index.php?page=' . $page . '&page-no=1" data-page="' . $page . '" data-params="page-no=1">1</a></li>';
 
 
 		// If page_from is greater than 2, we have skipped some pages, and show the 3 dots
@@ -169,7 +169,7 @@ function pagination($page_no, $items_total, $page_length, $page_around = 3, $sho
 	for ($i = $page_from; $i <= $page_to; $i++)
 	{
 
-		echo '<li' . ($page_no == $i ? ' class="active" ' : '') . '><a href="index.php?page=users&page-no=' . $i . '" data-page="users" data-params="page-no=' . $i . '">' . $i . '</a></li>';
+		echo '<li' . ($page_no == $i ? ' class="active" ' : '') . '><a href="index.php?page=' . $page . '&page-no=' . $i . '" data-page="' . $page . '" data-params="page-no=' . $i . '">' . $i . '</a></li>';
 
 	}
 
@@ -180,12 +180,12 @@ function pagination($page_no, $items_total, $page_length, $page_around = 3, $sho
 		}
 
 		// Show link to last page
-		echo '<li' . ($page_no == $pages_total ? 'class="active"' : '') . '><a href="index.php?page=users&page-no=' . $pages_total . '" data.page="users" data-params="page-no' . $pages_total . '">' . $pages_total . '</a></li>';
+		echo '<li' . ($page_no == $pages_total ? 'class="active"' : '') . '><a href="index.php?page=' . $page . '&page-no=' . $pages_total . '" data.page="' . $page . '" data-params="page-no' . $pages_total . '">' . $pages_total . '</a></li>';
 
 	// if the current page is less than the total number of pages, show next button
 		if ($page_no < $pages_total)
 		{
-			echo '<li><a href="index.php?page=users&page-no=' . ($page_no + 1) . '" data-page="users" data-params="page-no=' . ($page_no + 1) . '">' . $icons['next'] . '</a></li>';
+			echo '<li><a href="index.php?page=' . $page . '&page-no=' . ($page_no + 1) . '" data-page="' . $page . '" data-params="page-no=' . ($page_no + 1) . '">' . $icons['next'] . '</a></li>';
 		}
 		//else if current page is not less than 1, show disabled cursor
 		else if ($show_disabled_arrows)
@@ -266,7 +266,7 @@ function login($email, $password)
                     $_SESSION['fingerprint']                = fingerprint();
 
                     //Use a function to insert event in log
-                    create_event('info', 'af login' . $row->user_name, 100);
+                    create_event('info', '<a href="index.php?page=user-edit&id' . $row->user_id . '" data-page="user-edit" data-params="id=' . $row->user_id . ' ">' . $row->user_name . '</a>' . ' logged in', 100);
 
                     return true;
                 }

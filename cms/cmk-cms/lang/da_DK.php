@@ -89,3 +89,4 @@ define('SQL_ERROR',             'Der skete en fejl, prøve venlist igen. Kontakt
 define('CONNECT_ERROR',         'Ingen forbindelse til databasen.');
 define('NO_USER_SELECTED',      'Der er ikke valgt en bruger.');
 define('EMAIL_OR_PW_INVALID',   'Den indtastede e-mailadresse og/eller adganskode er ikke korrekt');
+define('DATETIME_FORMAT',       '%a, %e. %b %Y kl. %H:%I');
