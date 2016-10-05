@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+$root         = '';
 $include_path = 'includes/';
 define('DEVELOPER_STATUS', true);
 define('PAGE_LENGTH',       10);
@@ -17,6 +18,13 @@ else
 
 require 'lang/da_DK.php';
 require $include_path . 'functions.php';
+
+if (isset($_SESSION['user']['id']))
+{
+    check_fingerprint();
+    check_last_activity();
+}
+
 
 //config for db
 $db_host = 'localhost';
@@ -103,7 +111,8 @@ $view_files =
 	[
 		'icon'	=> $icons['dashboard'],
 		'title' => DASHBOARD,
-		'nav'	=> true
+		'nav'	=> true,
+        'required_access_lvl' => 10
 	],
 
 	'error' =>

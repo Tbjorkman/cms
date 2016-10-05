@@ -295,32 +295,64 @@ function logout()
     session_regenerate_id();
 }
 
-function security($prefix = '../')
+/**
+ * Function to check if user is Super Admin and only grants access if it matches
+ * @return bool
+ */
+function is_super_admin()
+{
+	return $_SESSION['user']['access_level'] == 1000 ? true : false;
+}
+
+function check_fingerprint()
 {
     // If the current fingerprint returned from the function doesn't match the fingerprint stored in session, logout!
     if ($_SESSION['fingerprint'] != fingerprint())
     {
         logout();
-        header('Location:' . $prefix . 'login.php');
+		?>
+		<script type="text/javascript">
+        	location.href='login.php';
+		</script>
+		<?php
         exit;
     }
+}
 
-    // IF developer_status is false, use on session
-    if(!DEVELOPER_STATUS)
-    {
-        // If session last_activity is set and the current timestamp + 30 mins is less than current timestamp, log the user out
-        if(isset($_SESSION['last_activity']) && $_SESSION['last_activity'] + 1800 < time())
-        {
-            logout();
-            header('Location:' . $prefix . 'login.php');
-            exit;
-        }
-        // Or update the session with the current timestamp
-        else
-        {
-            $_SESSION['last_activity'] = time();
-        }
-    }
+function check_last_activity()
+{
+	// IF developer_status is false, use on session
+	if(!DEVELOPER_STATUS)
+	{
+		// If session last_activity is set and the current timestamp + 30 mins is less than current timestamp, log the user out
+		if(isset($_SESSION['last_activity']) && $_SESSION['last_activity'] + 1800 < time())
+		{
+			logout();
+			?>
+			<script type="text/javascript">
+				location.href='login.php';
+			</script>
+			<?php
+			exit;
+		}
+		// Or update the session with the current timestamp
+		else
+		{
+			$_SESSION['last_activity'] = time();
+		}
+	}
+}
 
+function page_access($page)
+{
+	global $view_files;
 
+	if ($view_files[$page]['required_access_lvl'] > $_SESSION['user']['access_level'])
+	{
+		?>
+		<script type="text/javascript">
+			location.href="index.php";
+		</script>
+		<?php
+	}
 }

@@ -4,6 +4,9 @@ if ( !isset($view_files) )
 	require '../config.php';
 	$view_file = 'events';
 }
+
+page_access($view_file);
+
 //if session users is not defined, define it with an empty array
 if (!isset($_SESSION[$view_file]) )    $_SESSION[$view_file]               = [];
 //if these URL params are set, save their value to session
@@ -230,7 +233,7 @@ while( $row = $result->fetch_object()) {
 
 		<div class="row">
 			<div class="col-md-3">
-				<?php echo sprintf(SHOWING_ITEMS_AMOUNT, 1, 10, 97) ?>
+				<?php echo sprintf(SHOWING_ITEMS_AMOUNT, ($items_current_total == 0) ? 0 : $offset + 1, $offset + $items_current_total) ?>
 			</div>
 			<div class="col-md-9 text-right">
 					<?php

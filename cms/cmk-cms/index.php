@@ -6,11 +6,9 @@ require 'config.php';
 // If user id or access level is not defined, or access level is below 10, throw the user away
 if(!isset($_SESSION['user']['id']) || !isset($_SESSION['user']['access_level']) || $_SESSION['user']['access_level'] < 10)
 {
-    header('Location:../');
+    header('Location: ../');
     exit;
 }
-
-security('../');
 
 //if logout is defined in URL params, run function for logout
 if (isset($_GET['logout']))
@@ -88,14 +86,14 @@ $view_title	= $view_files[$view_file]['title'] . ' - CMK Admin';
                         </button>
                         <li class="dropdown profile">
                             <?php
-                            $id = intval($_SESSION['user']['id']);
+                            $current_user_id = intval($_SESSION['user']['id']);
 
                             $query = "SELECT 
                                             user_name, user_email 
                                       FROM
                                             users
                                       WHERE
-                                            user_id = $id";
+                                            user_id = $current_user_id";
 
                             $result = $mysqli->query($query);
 

@@ -41,7 +41,7 @@ $(function() {
 
 		$('.select2').select2();
 
-		//var sortable_cache = $('#sortable').html();
+		var sortable_cache = $('#sortable').html();
 		$('#sortable').sortable({
 			items : '.sortable-item',
 			handle: '.sortable-handle',
@@ -54,13 +54,27 @@ $(function() {
 					// Opdatér sorteringsnummeret i første kolonne
 					$('#' + $(this).attr('id') + ' td:first-child').text(index + 1);
 				});
-
 				var data_object =
 				{
 					type	: $(this).data('type'),
 					section	: $(this).data('section'),
 					data	: data_array
 				};
+				//do ajax request to toggle_status.php, send the jsonObject as data and use post. Return the data from the php-file as json-encoded
+				$.ajax({
+					type    : 'post',
+					url     : 'includes/sortable.php',
+					data    : data_object,
+					dataType: 'json',
+					//on success, check if the returned status is false. If it is, return order to the previous state
+					success : function (response)
+					{
+						if ( !response.status)
+						{
+							$('#sortable').html(sortable_cache);
+						}
+					}
+				})
 			}
 		});
 		prettyPrint();
@@ -71,7 +85,7 @@ $(function() {
             var $this   = $(this),
                 jsonObject =
             {
-                'status':state ? 1 : 0,
+                'status':state,
                 'type'  : $(this).data('type'),
                 'id'    : $(this).attr('id')
             };
@@ -82,15 +96,10 @@ $(function() {
                 data    : jsonObject,
                 dataType: 'json',
                 //on success, check if the returned status is false. If it is, return state to the previous state
-                success : function (data)
+                success : function (response)
                 {
-                    if(!data.status)
-                    {
-                        if(jsonObject.status == 1)
-                            $this.bootstrapSwitch('state', false, 'skip');
-                        else
-                            $this.bootstrapSwitch('state', true, 'skip');
-                    }
+                    if ( !response.status ) $this.bootstrapSwitch('state', !state, 'skip');
+
                 }
             })
         });

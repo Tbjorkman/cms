@@ -16,7 +16,7 @@
 				foreach($view_files as $file => $details)
 				{
 					// If nav in file details and required access level is smaller or equal to the users access level, show file in navigation
-					if ($details['nav'] && $details['required_access_lvl'] <= $_SESSION['user']['access_level'])
+					if ($details['nav'] == true && $details['required_access_lvl'] <= $_SESSION['user']['access_level'])
 					{
 						// Define the active variable with empty value
 						$active = '';

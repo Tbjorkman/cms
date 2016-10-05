@@ -87,6 +87,6 @@ define('LINKS',					'Links');
 define('SELECT_AN_OPTION',		'Vælg her...');
 define('SQL_ERROR',             'Der skete en fejl, prøve venlist igen. Kontakt hvis det er en problem med at forsæter.');
 define('CONNECT_ERROR',         'Ingen forbindelse til databasen.');
-define('NO_USER_SELECTED',      'Der er ikke valgt en bruger.');
+define('NO_ITEM_SELECTED',      'Der er ikke valgt en item.');
 define('EMAIL_OR_PW_INVALID',   'Den indtastede e-mailadresse og/eller adganskode er ikke korrekt');
 define('DATETIME_FORMAT',       '%a, %e. %b %Y kl. %H:%I');

@@ -1,5 +1,8 @@
 <?php
 include '../config.php';
+
+$result = false;
+
 // Check if all required values is defined from post and the values are not empty
 if (isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['type']) && !empty($_POST['id']))
 {
@@ -41,7 +44,7 @@ if (isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['type
                     {
 
                         // If status is true, save 1 to  $status, or save 0
-                        $status =($_POST['status'] ? 1 : 0);
+                        $status = $_POST['status'] == 'true' ? 1 : 0;
 
                         // Update status fro toggled user
                         $query = "
@@ -62,6 +65,113 @@ if (isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['type
                     }// Close: if ($row->role_access_level < $_SESSION['user']['access_level']...
 
                 }// Close: if($result ->num_rows == 1)
+            }// Close: if($_POST['id'] != $_SESSION['user']['id'])
+            break;
+
+        //If the value is page-status, do this (defined in the toggles attribute)
+        case 'page-protected':
+            if ($_SESSION['user']['access_level'] == 100)
+            {
+
+                if($_POST['id'] != $_SESSION['user']['id'])
+                {
+                    //secure the value from id is int
+                    $id = intval($_POST['id']);
+
+                    // Get the users from the Database
+                    $query = "
+                        SELECT 
+                            page_protected
+                        FROM  
+                            pages
+                        WHERE 
+                            page_id = $id";
+                    $result_page = $mysqli->query($query);
+
+                    // If result returns false, use the function query_error to show debugging info
+                    if(!$result_page)
+                    {
+                        query_error($query, __LINE__, __FILE__);
+                    }
+
+                    $row = $result_page->fetch_object();
+
+                    if ($row->page_protected != 1 || $_SESSION['user']['access_level'])
+                    {
+                        // If status is true, save 1 to  $status, or save 0
+                        $status = $_POST['status'] == 'true' ? 1 : 0;
+
+                        // Update status fro toggled user
+                        $query = "
+                        UPDATE
+                            pages
+                        SET
+                            page_protected = $status
+                        WHERE 
+                            page_id = $id";
+
+                        $result = $mysqli->query($query);
+
+                        // If result returns false, run the function query_error do show debugging info
+                        if ($result)
+                        {
+                            query_error($query, __LINE__, __FILE__);
+                        }
+                    }// close: if ($row->page_protected != 1 || $_SESSION['user']['access_level'])
+                }// Close: if($_POST['id'] != $_SESSION['user']['id'])
+            }// Close: if($_POST['id'] != $_SESSION['user']['id'])
+            break;
+
+        case 'page-status':
+            if ($_SESSION['user']['access_level'] >= 100)
+            {
+
+                if($_POST['id'] != $_SESSION['user']['id'])
+                {
+                    //secure the value from id is int
+                    $id = intval($_POST['id']);
+
+                    // Get the users from the Database
+                    $query = "
+                        SELECT 
+                            page_status
+                        FROM  
+                            pages
+                        WHERE 
+                            page_id = $id";
+                    $result_page = $mysqli->query($query);
+
+                    // If result returns false, use the function query_error to show debugging info
+                    if(!$result_page)
+                    {
+                        query_error($query, __LINE__, __FILE__);
+                    }
+
+                    $row = $result_page->fetch_object();
+
+                    if ($row->page_status != 1 || $_SESSION['user']['access_level'])
+                    {
+
+                        // If status is true, save 1 to  $status, or save 0
+                        $status = $_POST['status'] == 'true' ? 1 : 0;
+
+                        // Update status fro toggled user
+                        $query = "
+                        UPDATE
+                            pages
+                        SET
+                            page_status = $status
+                        WHERE 
+                            page_id = $id";
+
+                        $result = $mysqli->query($query);
+
+                        // If result returns false, run the function query_error do show debugging info
+                        if ($result) {
+                            query_error($query, __LINE__, __FILE__);
+                        }
+                    }// Close: if ($row->page_status != 1 || $_SESSION['user']['access_level'])
+                }// Close: if($_POST['id'] != $_SESSION['user']['id'])
             }// Close: if($_POST['id'] != $_SESSION['user']['id'])
             break;
     }

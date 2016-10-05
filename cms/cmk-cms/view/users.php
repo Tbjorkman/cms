@@ -3,10 +3,10 @@ if ( !isset($view_files) )
 {
 	require '../config.php';
 	$view_file = 'users';
-
-
-    //security('../');
 }
+
+page_access($view_file);
+
 //if session users is not defined, define it with an empty array
 if (!isset($_SESSION[$view_file]) )    $_SESSION[$view_file]               = [];
 //if these URL params are set, save their value to session
@@ -317,7 +317,7 @@ if (isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && ( $_GET['id'] 
 
 		<div class="row">
 			<div class="col-md-3">
-				<?php echo sprintf(SHOWING_ITEMS_AMOUNT, $offset + 1, $offset + $items_current_total, $items_total) ?>
+				<?php echo sprintf(SHOWING_ITEMS_AMOUNT, ($items_current_total == 0) ? 0 : $offset + 1, $offset + $items_current_total) ?>
 			</div>
 			<div class="col-md-9 text-right">
 				<ul class="pagination">
@@ -325,20 +325,8 @@ if (isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && ( $_GET['id'] 
 
                             pagination($view_file, $page_no, $items_total, $page_length);
 
-
-
                     ?>
-					<!--<li class="disabled"><a href=""><?php //echo $icons['previous'] ?></a></li>
-					<li class="active"><span>1</span></li>
-					<li><a href="index.php?page=users&page-no=2" data-page="users" data-params="page-no=2">2</a></li>
-					<li><a href="index.php?page=users&page-no=3" data-page="users" data-params="page-no=3">3</a></li>
-					<li><a href="index.php?page=users&page-no=4" data-page="users" data-params="page-no=4">4</a></li>
-					<li><a href="index.php?page=users&page-no=5" data-page="users" data-params="page-no=5">5</a></li>
-					<li class="disabled">
-						<span>&hellip;</span>
-					</li>
-					<li><a href="index.php?page=users&page-no=9" data-page="users" data-params="page-no=9">9</a></li>
-					<li><a href="index.php?page=users&page-no=2" data-page="users" data-params="page-no=2"><?php //echo $icons['next'] ?></a></li>-->
+
 				</ul>
 			</div>
 		</div>
