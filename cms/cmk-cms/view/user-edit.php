@@ -88,7 +88,7 @@ page_access($view_file);
 
 						$query = "
 								SELECT 
-									roll_access_level
+									role_access_level
 								FROM
 									roles
 								WHERE

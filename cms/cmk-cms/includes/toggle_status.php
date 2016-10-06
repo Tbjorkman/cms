@@ -70,7 +70,7 @@ if (isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['type
 
         //If the value is page-status, do this (defined in the toggles attribute)
         case 'page-protected':
-            if ($_SESSION['user']['access_level'] == 100)
+            if ( is_super_admin() )
             {
 
                 if($_POST['id'] != $_SESSION['user']['id'])
@@ -96,7 +96,7 @@ if (isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['type
 
                     $row = $result_page->fetch_object();
 
-                    if ($row->page_protected != 1 || $_SESSION['user']['access_level'])
+                    if ($row->page_protected != 1 || is_super_admin() )
                     {
                         // If status is true, save 1 to  $status, or save 0
                         $status = $_POST['status'] == 'true' ? 1 : 0;
@@ -113,7 +113,7 @@ if (isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['type
                         $result = $mysqli->query($query);
 
                         // If result returns false, run the function query_error do show debugging info
-                        if ($result)
+                        if (!$result)
                         {
                             query_error($query, __LINE__, __FILE__);
                         }
@@ -149,7 +149,7 @@ if (isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['type
 
                     $row = $result_page->fetch_object();
 
-                    if ($row->page_status != 1 || $_SESSION['user']['access_level'])
+                    if ($row->page_status != 1 || is_super_admin() )
                     {
 
                         // If status is true, save 1 to  $status, or save 0
@@ -167,7 +167,7 @@ if (isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['type
                         $result = $mysqli->query($query);
 
                         // If result returns false, run the function query_error do show debugging info
-                        if ($result) {
+                        if (!$result) {
                             query_error($query, __LINE__, __FILE__);
                         }
                     }// Close: if ($row->page_status != 1 || $_SESSION['user']['access_level'])
@@ -177,4 +177,4 @@ if (isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['type
     }
 }
 // return the bool value from $result in assoc array, with the key status and use json_encode to output data as a json object
-json_encode(['status' => $result]);
+echo json_encode(['status' => $result]);

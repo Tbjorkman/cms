@@ -103,7 +103,7 @@ if (isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && ( $_GET['id'] 
 		$row = $result->fetch_object();
 
 		//Only delete the selected user if the access level is below the current users access level or is Super Administrator
-		if($row->role_access_level < $_SESSION['user']['access_level']|| $_SESSION['user']['access_level'] == 1000)
+		if($row->role_access_level < $_SESSION['user']['access_level']|| is_super_admin())
 		{
 			$query = "
             DELETE FROM 
@@ -317,7 +317,7 @@ if (isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && ( $_GET['id'] 
 
 		<div class="row">
 			<div class="col-md-3">
-				<?php echo sprintf(SHOWING_ITEMS_AMOUNT, ($items_current_total == 0) ? 0 : $offset + 1, $offset + $items_current_total) ?>
+				<?php echo sprintf(SHOWING_ITEMS_AMOUNT, ($items_current_total == 0 ) ? 0 : $offset + 1, $offset + $items_current_total, $items_total) ?>
 			</div>
 			<div class="col-md-9 text-right">
 				<ul class="pagination">

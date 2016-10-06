@@ -89,7 +89,7 @@ $password_required_label = '';
 
 					$query = "
 							SELECT 
-								roll_access_level
+								role_access_level
 							FROM
 								roles
 							WHERE
@@ -118,7 +118,7 @@ $password_required_label = '';
                     $query = "
                             INSERT INTO
                                 users (user_name, user_email, user_password, fk_role_id)
-                            VALUES ('$name', '$email', '$password_hash', $role)";
+                            VALUES ('$name', '$email', '$password_hash', $role_id)";
                     $result = $mysqli->query($query);
 
                     // If result returns false, use the function query_error
@@ -136,9 +136,8 @@ $password_required_label = '';
 
         } // CLOSES: if( empty($_POST['name']) || empty..... else
     } // CLOSES: if (isset($_POST['save_item']))
-?>
 
-			<?php include $include_path . 'form-user.php' ?>
+ include $include_path . 'form-user.php' ?>
 		</form>
 	</div>
 </div>

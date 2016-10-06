@@ -98,7 +98,7 @@ if (isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']))
 		$row = $result->fetch_object();
 
 		//Only delete the selected user if the access level is below the current users access level or is Super Administrator
-		if($row->rpage_protected != 1 || is_super_admin() )
+		if($row->page_protected != 1 || is_super_admin() )
 		{
 			$query = "
             DELETE FROM 
@@ -152,10 +152,9 @@ if (isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']))
 								// If the current $page_length matches the key in the array, save selected in the variable $selected or save empty string
 								$selected = $page_length == $key ? 'selected' : '';
 								//Add option to select with the key
-								?>
+							?>
 								<option value="<?php echo $key ?>"<?php echo $selected; ?>><?php echo $value; ?></option>
-								<?php
-								//echo '<option value="' . $key . '"' . $selected . '>' . $value . '</option';
+							<?php
 							}
 							?>
 						</select>

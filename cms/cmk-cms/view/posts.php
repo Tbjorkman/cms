@@ -2,6 +2,129 @@
 if ( !isset($view_files) )
 {
 	require '../config.php';
+	$view_file = 'posts';
+}
+
+page_access($view_file);
+
+//if session users is not defined, define it with an empty array
+if (!isset($_SESSION[$view_file]) )    $_SESSION[$view_file]               = [];
+//if these URL params are set, save their value to session
+if (isset($_GET['page-no']))        $_SESSION[$view_file]['page_no']       = $_GET['page-no'];
+if (isset($_GET['sort-by']))        $_SESSION[$view_file]['sort_by']       = $_GET['sort-by'];
+if (isset($_GET['order']))          $_SESSION[$view_file]['order']         = $_GET['order'];
+
+if (isset($_GET['page-length']) && $_GET['page-length'] >= min($page_lengths) && $_GET['page-length'] <= max($page_lengths))
+{
+	$_SESSION[$view_file]['page_length']   = $_GET['page-length'];
+	unset($_SESSION[$view_file]['page_no']);
+}
+
+// If search is defined in URL params and the value is not empty, save the value to session
+if(isset($_GET['search']) && !empty($_GET['search']))
+{
+	$_SESSION[$view_file]['search'] = $_GET['search'];
+	unset($_SESSION[$view_file]['page_no']);
+}
+
+// If search is defined in URL params and the value is empty, unset the session to clear search
+if(isset($_GET['search']) && empty($_GET['search'])) unset($_SESSION[$view_file]['search']);
+
+// Defaults
+$page_length    = isset($_SESSION[$view_file]['page_length'])  		? intval($_SESSION[$view_file]['page_length'])      			: PAGE_LENGTH;
+$page_no        = isset($_SESSION['page_no'])               		? $_GET['page-no']                                     			: 1;
+$sort_by	    = isset($_SESSION['sort_by'])               		? $_GET['sort-by']	                                   			: 'created';
+$order			= isset($_SESSION['order'])	                		? $mysqli->escape_string($_GET['order'])	           			: 'asc';
+$search         = isset($_SESSION[$view_file]['search'])      		? $mysqli->escape_string($_SESSION[$view_file]['search']) 		: '';
+$icon_title	= $icon_url = $icon_locked = $icon_status = '';
+
+//if else to get the items to sort accordingly
+if ($order == 'desc')
+{
+	$new_order	= 'asc';
+	$icon		= $icons['sort-desc'];
+}
+else
+{
+	$new_order	= 'desc';
+	$icon		= $icons['sort-asc'];
+}
+
+//a switch statement to run through the different properties. In this case running through the different values and sorting them according to the ASC or DESC variables above
+switch($sort_by)
+{
+	case 'created':
+		$icon_created 	= $icon;
+		$order_by		="post_created " . strtoupper($order);
+		break;
+	case 'title':
+		$icon_title		= $icon;
+		$order_by       ="post_title " . strtoupper($order);
+		break;
+	case 'url':
+		$icon_url		= $icon;
+		$order_by       ="post_url_key " . strtoupper($order);
+		break;
+	case 'user':
+		$icon_name		= $icon;
+		$order_by       ="user_name " . strtoupper($order);
+		break;
+	case 'status':
+		$icon_status	= $icon;
+		$order_by       ="post_status " . strtoupper($order);
+		break;
+}
+// If delete and id is defined in URL params, the id is not empty, delete the selected user
+if (isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']))
+{
+	// Get the selected page id from the URL param id
+	$id = intval($_GET['id']);
+
+	// Get the page from the Database
+	$query = "
+				SELECT 
+					post_title, role_access_level
+				FROM  
+					posts
+				INNER JOIN 
+					users ON posts.fk_user_id = users.user_id
+				INNER JOIN 
+					roles ON users.fk_role_id = roles.role_id
+				WHERE 
+					post_id = $id";
+	$result = $mysqli->query($query);
+
+	// If result returns false, use the function query_error to show debugging info
+	if(!$result)
+	{
+		query_error($query, __LINE__, __FILE__);
+	}
+
+	if($result ->num_rows == 1)
+	{
+		//Return the information from the Database as an object
+		$row = $result->fetch_object();
+
+		//Only delete the selected user if the access level is below the current users access level or is Super Administrator
+		if($row->role_access_level >= $_SESSION['user']['access_level'] == 10 || is_super_admin() )
+		{
+			$query = "
+					DELETE FROM 
+							posts
+					WHERE 
+							post_id = $id";
+			$result = $mysqli->query($query);
+
+			// If result returns false, use the function query_error to show debugging info
+			if(!$result)
+			{
+				query_error($query, __LINE__, __FILE__);
+			}
+		}
+
+		//Use a function to insert event in log
+		create_event('delete', 'af siden' . $row->post_title, $view_files[$view_file]['required_access_lvl']);
+	}
 }
 ?>
 
@@ -30,10 +153,15 @@ if ( !isset($view_files) )
 					<label class="font-weight-300">
 						Vis
 						<select class="form-control input-sm" name="page-length" data-change="submit-form">
-							<option value="10">10</option>
-							<option value="25">25</option>
-							<option value="50">50</option>
-							<option value="100">100</option>
+							<?php
+							foreach ($page_lengths as $key => $value)
+							{
+								$selected = $page_length == $key ? 'selected' : '';
+							?>
+							<option value="<?php echo $key ?>"<?php echo $selected; ?>><?php echo $value; ?></option>
+							<?php
+							}
+							?>
 						</select>
 						elementer
 					</label>
@@ -78,87 +206,130 @@ if ( !isset($view_files) )
 				</thead>
 
 				<tbody>
-				<tr>
-					<td>ons, 22. jul 2015 kl. 22:36</td>
-					<td>Eksempel på indlæg 1</td>
-					<td><a href="../blog/post/eksempel-paa-indlaeg-1" target="_blank">/blog/post/eksempel-paa-indlaeg-1</a></td>
+					<?php
+					//Separating the query helps to make it more dynamic so that you don't have to rewrite a lot of the query over and over
+					$search_sql = '';
 
-					<td>Børge Mogensen</td>
+					if (!empty($search))
+					{
+						$search_sql ="WHERE post_title 
+										LIKE '%$search%' 
+									  OR post_meta_description 
+										LIKE '%$search%'";
+					}
 
-					<!-- LINK TIL KOMMENTARER -->
-					<td class="icon">
-						<a href="index.php?page=comments&post-id=1" title="<?php echo $view_files['comments']['title'] ?>" data-page="comments" data-params="post-id=1"><?php echo $view_files['comments']['icon'] ?></a>
-					</td>
+					$access_level_sql = '';
 
-					<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
-					<td class="toggle">
-						<input type="checkbox" class="toggle-checkbox" name="my-checkbox">
-					</td>
+					// If current users access level is below 10, add filter to sql, so users with higher access level is not visible
+					if($_SESSION['user']['access_level'] < 10 )
+					{
+						$user_access_level = intval($_SESSION['user']['access_level']);
 
-					<!-- REDIGER LINK -->
-					<td class="icon">
-						<a class="<?php echo $buttons['edit'] ?>" href="index.php?page=post-edit&id=1" data-page="post-edit" data-params="id=1" title="<?php echo EDIT_ITEM ?>"><?php echo $icons['edit'] ?></a>
-					</td>
+						$access_level_sql = "
+											AND
+												role_access_level <= $user_access_level";
+					}
 
-					<!-- SLET LINK -->
-					<td class="icon">
-						<a class="<?php echo $buttons['delete'] ?>" data-toggle="confirmation" href="index.php?page=posts&id=1&delete" data-page="posts" data-params="id=1&delete" title="<?php echo DELETE_ITEM ?>"><?php echo $icons['delete'] ?></a>
-					</td>
-				</tr>
+					$query = "
+							SELECT 
+								post_id, DATE_FORMAT (post_created, '" . DATETIME_FORMAT . "') AS post_created_formatted, post_title, post_url_key, post_status, user_name, role_access_level
+							FROM 
+								posts
+							INNER JOIN
+								users ON posts.fk_user_id = users.user_id
+							INNER JOIN 
+								roles ON users.fk_role_id = roles.role_id 
+							WHERE
+								1=1 $search_sql $access_level_sql
+							";
+					$result = $mysqli->query($query);
 
-				<tr>
-					<td>lør, 11. jul 2015 kl. 17:56</td>
-					<td>Eksempel på indlæg 2</td>
-					<td><a href="../blog/post/eksempel-paa-indlaeg-2" target="_blank">/blog/post/eksempel-paa-indlaeg-2</a></td>
+					$items_total = $result->num_rows;
 
-					<td>Børge Mogensen</td>
+					$offset = ($page_no - 1) * $page_length;
 
-					<!-- LINK TIL KOMMENTARER -->
-					<td class="icon">
-						<a href="index.php?page=comments&post-id=2" title="<?php echo $view_files['comments']['title'] ?>" data-page="comments" data-params="post-id=2"><?php echo $view_files['comments']['icon'] ?></a>
-					</td>
+					$query .= " 
+												ORDER BY 
+														$order_by 
+												LIMIT 
+														$page_length
+												OFFSET
+														$offset";
 
-					<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
-					<td class="toggle">
-						<input type="checkbox" class="toggle-checkbox" name="my-checkbox" checked>
-					</td>
+					$result = $mysqli->query($query);
 
-					<!-- REDIGER LINK -->
-					<td class="icon">
-						<a class="<?php echo $buttons['edit'] ?>" href="index.php?page=post-edit&id=2" data-page="post-edit" data-params="id=2"  title="<?php echo EDIT_ITEM ?>"><?php echo $icons['edit'] ?></a>
-					</td>
+					$items_current_total = $result->num_rows;
 
-					<!-- SLET LINK -->
-					<td class="icon">
-						<a class="<?php echo $buttons['delete'] ?>" data-toggle="confirmation" href="index.php?page=posts&id=2&delete" data-page="posts" data-params="id=2&delete" title="<?php echo DELETE_ITEM ?>"><?php echo $icons['delete'] ?></a>
-					</td>
-				</tr>
+					prettyprint($query);
+
+					if(!$result)
+					{
+						query_error($query, __Line__, __FILE__);
+					}
+
+					while( $row = $result->fetch_object()) {
+						?>
+						<tr>
+							<td><?php echo $row->post_created_formatted ?></td>
+							<td><?php echo $row->post_title ?></td>
+							<td><a href="../<?php echo $row->post_url_key ?>" target="_blank">/<?php echo $row->post_url_key ?></a></td>
+							<td><?php echo $row->user_name ?></td>
+
+							<!-- LINK TIL KOMMENTARER -->
+							<td class="icon">
+								<a href="index.php?page=comments&post-id=<?php echo $row->post_id ?>"
+								   title="<?php echo $view_files['comments']['title'] ?>" data-page="comments"
+								   data-params="post-id=<?php echo $row->post_id ?>"><?php echo $view_files['comments']['icon'] ?></a>
+							</td>
+
+							<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
+							<td class="toggle">
+							<?php
+							if($row->role_access_level > $_SESSION['user']['id'] == 10)
+							{ // Don't show toggle for current user or users with a lower access level than moderator
+							?>
+								<input type="checkbox" class="toggle-checkbox" id="<?php echo $row->post_id ?>" data-type="posts" <?php if ($row->post_status == 1){ echo 'checked';} ?> >
+							<?php
+							}
+							?>
+							</td>
+
+							<!-- REDIGER LINK -->
+							<td class="icon">
+								<a class="<?php echo $buttons['edit'] ?>" href="index.php?page=post-edit&id=<?php echo $row->post_id ?>"
+								   data-page="post-edit" data-params="id=<?php echo $row->post_id ?>"
+								   title="<?php echo EDIT_ITEM ?>"><?php echo $icons['edit'] ?></a>
+							</td>
+
+							<!-- SLET LINK -->
+							<td class="icon">
+								<a class="<?php echo $buttons['delete'] ?>" data-toggle="confirmation"
+								   href="index.php?page=posts&id=<?php echo $row->post_id ?>&delete" data-page="posts" data-params="id=<?php echo $row->post_id ?>&delete"
+								   title="<?php echo DELETE_ITEM ?>"><?php echo $icons['delete'] ?></a>
+							</td>
+						</tr>
+				<?php
+					}
+				?>
 				</tbody>
 			</table>
 		</div><!-- /.table-responsive -->
 
 		<div class="row">
 			<div class="col-md-3">
-				<?php echo sprintf(SHOWING_ITEMS_AMOUNT, 1, 10, 97) ?>
+				<?php echo sprintf(SHOWING_ITEMS_AMOUNT, ($items_current_total == 0) ? 0 : $offset + 1, $offset + $items_current_total, $items_total) ?>
 			</div>
 			<div class="col-md-9 text-right">
-				<ul class="pagination">
-					<li class="disabled"><a href=""><?php echo $icons['previous'] ?></a></li>
-					<li class="active"><span>1</span></li>
-					<li><a href="index.php?page=posts&page-no=2" data-page="posts" data-params="page-no=2">2</a></li>
-					<li><a href="index.php?page=posts&page-no=3" data-page="posts" data-params="page-no=3">3</a></li>
-					<li><a href="index.php?page=posts&page-no=4" data-page="posts" data-params="page-no=4">4</a></li>
-					<li><a href="index.php?page=posts&page-no=5" data-page="posts" data-params="page-no=5">5</a></li>
-					<li class="disabled">
-						<span>&hellip;</span>
-					</li>
-					<li><a href="index.php?page=posts&page-no=9" data-page="posts" data-params="page-no=9">9</a></li>
-					<li><a href="index.php?page=posts&page-no=2" data-page="posts" data-params="page-no=2"><?php echo $icons['next'] ?></a></li>
-				</ul>
+				<?php
+
+					pagination($view_file, $page_no, $items_total, $page_length);
+
+				?>
 			</div>
 		</div>
 	</div>
 </div>
 
 <?php
+
 if (DEVELOPER_STATUS) { show_developer_info(); }
