@@ -174,6 +174,56 @@ if (isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['type
                 }// Close: if($_POST['id'] != $_SESSION['user']['id'])
             }// Close: if($_POST['id'] != $_SESSION['user']['id'])
             break;
+        case 'post-status':
+
+            if($_POST['id'] != $_SESSION['user']['id'])
+            {
+                //secure the value from id is int
+                $id = intval($_POST['id']);
+
+                // Get the users from the Database
+                $query = "
+                        SELECT 
+                            post_status
+                        FROM  
+                            posts 
+                        WHERE 
+                            post_id = $id";
+                $result_post = $mysqli->query($query);
+
+                // If result returns false, use the function query_error to show debugging info
+                if(!$result_post)
+                {
+                    query_error($query, __LINE__, __FILE__);
+                }
+
+                if($result_post ->num_rows == 1)
+                {
+                    //Return the information from the Database as an object
+                    $row = $result_post->fetch_object();
+
+                    // If status is true, save 1 to  $status, or save 0
+                    $status = $_POST['status'] == 'true' ? 1 : 0;
+
+                    // Update status fro toggled user
+                    $query = "
+                    UPDATE
+                        posts
+                    SET
+                        post_status = $status
+                    WHERE 
+                        post_id = $id ";
+
+                    $result = $mysqli->query($query);
+
+                    // If result returns false, run the function query_error do show debugging info
+                    if($result)
+                    {
+                        query_error($query, __LINE__, __FILE__);
+                    }
+                }// Close: if($result ->num_rows == 1)
+            }// Close: if($_POST['id'] != $_SESSION['user']['id'])
+            break;
     }
 }
 // return the bool value from $result in assoc array, with the key status and use json_encode to output data as a json object

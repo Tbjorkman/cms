@@ -148,8 +148,8 @@ if (isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']))
 	<div class="card-body">
 		<div class="row">
 			<div class="col-md-4">
-				<form class="form-inline" data-page="posts">
-					<input type="hidden" name="page" value="posts">
+				<form class="form-inline" data-page="<?php echo $view_file ?>">
+					<input type="hidden" name="page" value="<?php echo $view_file ?>">
 					<label class="font-weight-300">
 						Vis
 						<select class="form-control input-sm" name="page-length" data-change="submit-form">
@@ -168,8 +168,8 @@ if (isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']))
 				</form>
 			</div>
 			<div class="col-md-5 col-md-offset-3 text-right">
-				<form data-page="posts">
-					<input type="hidden" name="page" value="posts">
+				<form data-page="<?php echo $view_file ?>">
+					<input type="hidden" name="page" value="<?php echo $view_file ?>">
 					<div class="input-group input-group-sm">
 						<input type="search" name="search" id="search" class="form-control" placeholder="<?php echo PLACEHOLDER_SEARCH ?>" value="">
 						<span class="input-group-btn">
@@ -185,20 +185,20 @@ if (isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']))
 				<thead>
 				<tr>
 					<th>
-						<a href="index.php?page=posts&sort-by=created&order=asc" data-page="posts" data-params="sort-by=created&order=asc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icons['sort-desc'] . CREATED ?></a>
+						<a href="index.php?page=<?php echo $view_file ?>&sort-by=created&order=<?php  echo $new_order ?>" data-page="<?php echo $view_file ?>" data-params="sort-by=created&order=<?php echo $new_order  ?>" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icons['sort-desc'] . CREATED ?></a>
 					</th>
 					<th>
-						<a href="index.php?page=posts&sort-by=title&order=asc" data-page="posts" data-params="sort-by=title&order=asc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo TITLE ?></a>
+						<a href="index.php?page=<?php echo $view_file ?>&sort-by=title&order=<?php echo $new_order  ?>" data-page="<?php echo $view_file ?>" data-params="sort-by=title&order=<?php  echo $new_order ?>" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo TITLE ?></a>
 					</th>
 					<th>
-						<a href="index.php?page=posts&sort-by=url&order=asc" data-page="posts" data-params="sort-by=address&order=asc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo URL ?></a>
+						<a href="index.php?page=<?php echo $view_file ?>&sort-by=url&order=<?php echo $new_order  ?>" data-page="<?php echo $view_file ?>" data-params="sort-by=address&order=<?php  echo $new_order ?>" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo URL ?></a>
 					</th>
 					<th>
-						<a href="index.php?page=posts&sort-by=user-name&order=asc" data-page="posts" data-params="sort-by=user-name&order=asc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo USER ?></a>
+						<a href="index.php?page=<?php echo $view_file ?>&sort-by=user-name&order=<?php  echo $new_order ?>" data-page="<?php echo $view_file ?>" data-params="sort-by=user-name&order=<?php echo $new_order ?>" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo USER ?></a>
 					</th>
 					<th class="icon"></th>
 					<th class="toggle">
-						<a href="index.php?page=posts&sort-by=status&order=asc" data-page="posts" data-params="sort-by=status&order=asc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo STATUS ?></a>
+						<a href="index.php?page=<?php echo $view_file ?>&sort-by=status&order=<?php  echo $new_order ?>" data-page="<?php echo $view_file ?>" data-params="sort-by=status&order=<?php echo $new_order ?>" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo STATUS ?></a>
 					</th>
 					<th class="icon"></th>
 					<th class="icon"></th>
@@ -284,14 +284,7 @@ if (isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']))
 
 							<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
 							<td class="toggle">
-							<?php
-							if($row->role_access_level > $_SESSION['user']['id'] == 10)
-							{ // Don't show toggle for current user or users with a lower access level than moderator
-							?>
-								<input type="checkbox" class="toggle-checkbox" id="<?php echo $row->post_id ?>" data-type="posts" <?php if ($row->post_status == 1){ echo 'checked';} ?> >
-							<?php
-							}
-							?>
+								<input type="checkbox" class="toggle-checkbox" id="<?php echo $row->post_id ?>" data-type="post-status" <?php if($row->post_status == 1) echo 'checked'; ?>
 							</td>
 
 							<!-- REDIGER LINK -->
@@ -317,7 +310,9 @@ if (isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']))
 
 		<div class="row">
 			<div class="col-md-3">
-				<?php echo sprintf(SHOWING_ITEMS_AMOUNT, ($items_current_total == 0) ? 0 : $offset + 1, $offset + $items_current_total, $items_total) ?>
+				<?php
+				echo sprintf(SHOWING_ITEMS_AMOUNT, ($items_current_total == 0) ? 0 : $offset + 1, $offset + $items_current_total, $items_total)
+				?>
 			</div>
 			<div class="col-md-9 text-right">
 				<?php
